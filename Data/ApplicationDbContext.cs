@@ -14,9 +14,10 @@ namespace SnapPlan.Data
         public DbSet<Venue> Venues { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Registration> Registrations { get; set; }
-    }
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
