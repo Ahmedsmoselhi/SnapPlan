@@ -1,0 +1,7 @@
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.csproj.AssemblyReference.cache
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.GeneratedMSBuildEditorConfig.editorconfig
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.AssemblyInfoInputs.cache
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.AssemblyInfo.cs
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.csproj.CoreCompileInputs.cache
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.MvcApplicationPartsAssemblyInfo.cs
+D:\.NetProj\VS\SnapPlan\SnapPlan\obj\Debug\net8.0\SnapPlan.MvcApplicationPartsAssemblyInfo.cache

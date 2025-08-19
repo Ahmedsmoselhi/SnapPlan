@@ -1,0 +1,6 @@
+@SnapPlan_HostAddress = http://localhost:5115
+
+GET {{SnapPlan_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
