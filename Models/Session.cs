@@ -9,6 +9,12 @@
 
         public int EventId { get; set; }
         public Event Event { get; set; }
+
+        public int RoomId { get; set; }
+        public Room Room { get; set; }
+
+        public int SpeakerId { get; set; }
+        public Speaker Speaker { get; set; }
     }
 
 }
