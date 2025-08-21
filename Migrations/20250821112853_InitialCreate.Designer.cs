@@ -12,7 +12,7 @@ using SnapPlan.Data;
 namespace SnapPlan.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250819125637_InitialCreate")]
+    [Migration("20250821112853_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -75,6 +75,9 @@ namespace SnapPlan.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -108,11 +111,16 @@ namespace SnapPlan.Migrations
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("TicketTypeId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AttenderId");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("TicketTypeId");
 
                     b.ToTable("Registrations");
                 });
@@ -156,6 +164,12 @@ namespace SnapPlan.Migrations
                     b.Property<int>("EventId")
                         .HasColumnType("int");
 
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpeakerId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
@@ -167,7 +181,36 @@ namespace SnapPlan.Migrations
 
                     b.HasIndex("EventId");
 
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("SpeakerId");
+
                     b.ToTable("Sessions");
+                });
+
+            modelBuilder.Entity("SnapPlan.Models.Speaker", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Speakers");
                 });
 
             modelBuilder.Entity("SnapPlan.Models.Staff", b =>
@@ -202,6 +245,31 @@ namespace SnapPlan.Migrations
                     b.ToTable("Staffs");
                 });
 
+            modelBuilder.Entity("SnapPlan.Models.TicketType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("TicketTypes");
+                });
+
             modelBuilder.Entity("SnapPlan.Models.Venue", b =>
                 {
                     b.Property<int>("Id")
@@ -234,7 +302,7 @@ namespace SnapPlan.Migrations
                     b.HasOne("SnapPlan.Models.Venue", "Venue")
                         .WithMany()
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Organizer");
@@ -256,9 +324,17 @@ namespace SnapPlan.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SnapPlan.Models.TicketType", "TicketType")
+                        .WithMany()
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Attender");
 
                     b.Navigation("Event");
+
+                    b.Navigation("TicketType");
                 });
 
             modelBuilder.Entity("SnapPlan.Models.Room", b =>
@@ -280,6 +356,33 @@ namespace SnapPlan.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SnapPlan.Models.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SnapPlan.Models.Speaker", "Speaker")
+                        .WithMany("Sessions")
+                        .HasForeignKey("SpeakerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Room");
+
+                    b.Navigation("Speaker");
+                });
+
+            modelBuilder.Entity("SnapPlan.Models.TicketType", b =>
+                {
+                    b.HasOne("SnapPlan.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Event");
                 });
 
@@ -289,6 +392,11 @@ namespace SnapPlan.Migrations
                 });
 
             modelBuilder.Entity("SnapPlan.Models.Event", b =>
+                {
+                    b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("SnapPlan.Models.Speaker", b =>
                 {
                     b.Navigation("Sessions");
                 });

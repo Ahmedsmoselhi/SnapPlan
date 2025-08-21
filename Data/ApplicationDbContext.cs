@@ -14,12 +14,24 @@ namespace SnapPlan.Data
         public DbSet<Venue> Venues { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Registration> Registrations { get; set; }
-        public DbSet<TicketType> TicketTypes { get; set; }
         public DbSet<Speaker> Speakers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Minimal: avoid multiple cascade paths
+            modelBuilder.Entity<Session>()
+                .HasOne(s => s.Room)
+                .WithMany()
+                .HasForeignKey(s => s.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.Venue)
+                .WithMany()
+                .HasForeignKey(e => e.VenueId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

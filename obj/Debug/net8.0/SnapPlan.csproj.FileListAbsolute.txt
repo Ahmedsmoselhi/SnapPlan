@@ -337,3 +337,4 @@ C:\Users\ahmed\OneDrive\Desktop\SnapPlan\obj\Debug\net8.0\refint\SnapPlan.dll
 C:\Users\ahmed\OneDrive\Desktop\SnapPlan\obj\Debug\net8.0\SnapPlan.pdb
 C:\Users\ahmed\OneDrive\Desktop\SnapPlan\obj\Debug\net8.0\SnapPlan.genruntimeconfig.cache
 C:\Users\ahmed\OneDrive\Desktop\SnapPlan\obj\Debug\net8.0\ref\SnapPlan.dll
+C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\appsettings.json

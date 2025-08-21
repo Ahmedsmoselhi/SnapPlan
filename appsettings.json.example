@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=YOUR_SERVER;Database=SnapPlan;Trusted_Connection=True;TrustServerCertificate=True"
+    "DefaultConnection": "Server=Moselhi\\SQLEXPRESS;Database=SnapPlan;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
   },
   "Logging": {
     "LogLevel": {
