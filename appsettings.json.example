@@ -2,12 +2,6 @@
   "ConnectionStrings": {
     "DefaultConnection": "Server=Moselhi\\SQLEXPRESS;Database=SnapPlan;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
   },
-  "Jwt": {
-    "Key": "REPLACE_WITH_A_LONG_RANDOM_SECRET_KEY",
-    "Issuer": "SnapPlan",
-    "Audience": "SnapPlanClients",
-    "ExpiresMinutes": 60
-  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
