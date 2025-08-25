@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using SnapPlan.Data;
 using SnapPlan.Models;
-using SnapPlan.Utils;
+ 
 
 namespace SnapPlan.Controllers
 {
@@ -44,7 +44,7 @@ namespace SnapPlan.Controllers
             {
                 Username = req.Username,
                 Email = req.Email,
-                PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password),
+                PasswordHash = req.Password,
                 PhoneNumber = req.PhoneNumber
             };
             
@@ -62,7 +62,7 @@ namespace SnapPlan.Controllers
             var staff = _db.Staffs.FirstOrDefault(s => 
                 s.Username == req.UsernameOrEmail || s.Email == req.UsernameOrEmail);
             
-            if (staff == null || staff.PasswordHash != SimplePasswordHasher.ComputeSha256(req.Password))
+            if (staff == null || staff.PasswordHash != req.Password)
                 return Unauthorized("Invalid credentials.");
 
             var token = GenerateJwt(staff.Id, staff.Username, staff.Role.ToString());
@@ -86,7 +86,7 @@ namespace SnapPlan.Controllers
             var attender = _db.Attenders.FirstOrDefault(a => 
                 a.Username == req.UsernameOrEmail || a.Email == req.UsernameOrEmail);
             
-            if (attender == null || attender.PasswordHash != SimplePasswordHasher.ComputeSha256(req.Password))
+            if (attender == null || attender.PasswordHash != req.Password)
                 return Unauthorized("Invalid credentials.");
 
             var token = GenerateJwt(attender.Id, attender.Username, "Attender");
