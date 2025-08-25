@@ -73,8 +73,7 @@ namespace SnapPlan.Controllers
                     id = staff.Id,
                     username = staff.Username,
                     email = staff.Email,
-                    role = staff.Role.ToString(),
-                    organizationName = staff.OrganizationName
+                    role = staff.Role.ToString()
                 }
             });
         }

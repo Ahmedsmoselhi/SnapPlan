@@ -15,6 +15,7 @@ namespace SnapPlan.Data
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<Speaker> Speakers { get; set; }
+        public DbSet<Draft> Drafts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +33,20 @@ namespace SnapPlan.Data
                 .WithMany()
                 .HasForeignKey(e => e.VenueId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Draft ownership: Organizer (Staff)
+            modelBuilder.Entity<Draft>()
+                .HasOne(d => d.Organizer)
+                .WithMany() // keep minimal, no navigation collection on Staff
+                .HasForeignKey(d => d.OrganizerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Draft optional venue
+            modelBuilder.Entity<Draft>()
+                .HasOne(d => d.Venue)
+                .WithMany()
+                .HasForeignKey(d => d.VenueId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
