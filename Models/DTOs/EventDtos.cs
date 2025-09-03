@@ -21,6 +21,10 @@ namespace SnapPlan.Models.DTOs
 
         [Required]
         public int VenueId { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Maximum tickets must be at least 1")]
+        public int MaxTickets { get; set; }
     }
 
     public class UpdateEventDto
@@ -36,6 +40,9 @@ namespace SnapPlan.Models.DTOs
         public DateTime? EndDate { get; set; }
 
         public int? VenueId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Maximum tickets must be at least 1")]
+        public int? MaxTickets { get; set; }
     }
 
     public class UpdateEventStatusDto

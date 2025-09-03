@@ -31,6 +31,9 @@ namespace SnapPlan.Controllers
             var evt = await _db.Events.FindAsync(req.EventId);
             if (evt == null) return BadRequest("Event not found.");
             if (evt.Status != EventStatus.Accepted) return BadRequest("Event is not available for registration.");
+            
+            // Check if tickets are available
+            if (evt.AvailableTickets <= 0) return BadRequest("No tickets available for this event.");
 
             // Check if already registered
             var existingRegistration = await _db.Registrations
@@ -43,6 +46,9 @@ namespace SnapPlan.Controllers
                 EventId = req.EventId,
                 RegistrationDate = DateTime.UtcNow
             };
+
+            // Decrement available tickets
+            evt.AvailableTickets--;
 
             _db.Registrations.Add(registration);
             await _db.SaveChangesAsync();
@@ -69,6 +75,46 @@ namespace SnapPlan.Controllers
             return Ok(registrations);
         }
 
+        // OrganizerOnly: get registration statistics for my event
+        [HttpGet("event/{eventId:int}/statistics")]
+        [Authorize(Policy = "OrganizerOnly")]
+        public async Task<IActionResult> GetEventRegistrationStatistics(int eventId)
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            if (!int.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+            // Verify event belongs to organizer
+            var evt = await _db.Events.FindAsync(eventId);
+            if (evt == null) return NotFound();
+            if (evt.OrganizerId != userId) return Forbid();
+
+            var registrations = await _db.Registrations
+                .Where(r => r.EventId == eventId)
+                .Include(r => r.Attender)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var statistics = new
+            {
+                EventId = eventId,
+                EventTitle = evt.Title,
+                MaxTickets = evt.MaxTickets,
+                AvailableTickets = evt.AvailableTickets,
+                SoldTickets = evt.MaxTickets - evt.AvailableTickets,
+                TotalRegistrations = registrations.Count,
+                TicketUtilization = evt.MaxTickets > 0 ? (double)(evt.MaxTickets - evt.AvailableTickets) / evt.MaxTickets * 100 : 0,
+                Registrations = registrations.Select(r => new
+                {
+                    r.Id,
+                    r.RegistrationDate,
+                    Attender = new { r.Attender.Id, r.Attender.Username, r.Attender.Email }
+                })
+            };
+
+            return Ok(statistics);
+        }
+
         // AttenderOnly: cancel registration
         [HttpDelete("{id:int}")]
         [Authorize(Policy = "AttenderOnly")]
@@ -78,9 +124,17 @@ namespace SnapPlan.Controllers
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
             if (!int.TryParse(userIdStr, out var userId)) return Unauthorized();
 
-            var registration = await _db.Registrations.FindAsync(id);
+            var registration = await _db.Registrations
+                .Include(r => r.Event)
+                .FirstOrDefaultAsync(r => r.Id == id);
             if (registration == null) return NotFound();
             if (registration.AttenderId != userId) return Forbid();
+
+            // Increment available tickets when cancelling
+            if (registration.Event != null)
+            {
+                registration.Event.AvailableTickets++;
+            }
 
             _db.Registrations.Remove(registration);
             await _db.SaveChangesAsync();

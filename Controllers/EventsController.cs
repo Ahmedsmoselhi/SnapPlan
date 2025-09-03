@@ -28,6 +28,20 @@ namespace SnapPlan.Controllers
                 .Include(e => e.Organizer)
                 .Include(e => e.Venue)
                 .Include(e => e.Sessions)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Description,
+                    e.StartDate,
+                    e.EndDate,
+                    e.Status,
+                    e.MaxTickets,
+                    e.AvailableTickets,
+                    Organizer = new { e.Organizer.Id, e.Organizer.Username, e.Organizer.Email },
+                    Venue = new { e.Venue.Id, e.Venue.Name, e.Venue.Location },
+                    Sessions = e.Sessions.Select(s => new { s.Id, s.Title, s.StartTime, s.EndTime })
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -45,6 +59,20 @@ namespace SnapPlan.Controllers
                 .Include(e => e.Venue)
                 .Include(e => e.Sessions)
                 .ThenInclude(s => s.Speaker)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Description,
+                    e.StartDate,
+                    e.EndDate,
+                    e.Status,
+                    e.MaxTickets,
+                    e.AvailableTickets,
+                    Organizer = new { e.Organizer.Id, e.Organizer.Username, e.Organizer.Email },
+                    Venue = new { e.Venue.Id, e.Venue.Name, e.Venue.Location },
+                    Sessions = e.Sessions.Select(s => new { s.Id, s.Title, s.StartTime, s.EndTime, Speaker = s.Speaker != null ? new { s.Speaker.Id, s.Speaker.FullName, s.Speaker.Email } : null })
+                })
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -73,7 +101,9 @@ namespace SnapPlan.Controllers
                 EndDate = req.EndDate,
                 OrganizerId = userId,
                 VenueId = req.VenueId,
-                Status = EventStatus.Pending
+                Status = EventStatus.Pending,
+                MaxTickets = req.MaxTickets,
+                AvailableTickets = req.MaxTickets // Initially, all tickets are available
             };
 
             _db.Events.Add(evt);
@@ -105,6 +135,20 @@ namespace SnapPlan.Controllers
                 var venue = await _db.Venues.FindAsync(req.VenueId.Value);
                 if (venue == null) return BadRequest("Venue not found.");
                 evt.VenueId = req.VenueId.Value;
+            }
+
+            // Handle MaxTickets update - ensure we don't reduce below current registrations
+            if (req.MaxTickets.HasValue)
+            {
+                var currentRegistrations = await _db.Registrations.CountAsync(r => r.EventId == id);
+                if (req.MaxTickets.Value < currentRegistrations)
+                {
+                    return BadRequest($"Cannot reduce max tickets to {req.MaxTickets.Value} as there are already {currentRegistrations} registrations.");
+                }
+                
+                var difference = req.MaxTickets.Value - evt.MaxTickets;
+                evt.MaxTickets = req.MaxTickets.Value;
+                evt.AvailableTickets += difference; // Adjust available tickets accordingly
             }
 
             await _db.SaveChangesAsync();
@@ -152,6 +196,21 @@ namespace SnapPlan.Controllers
                 .Include(e => e.Organizer)
                 .Include(e => e.Venue)
                 .Include(e => e.Sessions)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Description,
+                    e.StartDate,
+                    e.EndDate,
+                    e.Status,
+                    e.MaxTickets,
+                    e.AvailableTickets,
+                    SoldTickets = e.MaxTickets - e.AvailableTickets,
+                    Organizer = new { e.Organizer.Id, e.Organizer.Username, e.Organizer.Email },
+                    Venue = new { e.Venue.Id, e.Venue.Name, e.Venue.Location },
+                    Sessions = e.Sessions.Select(s => new { s.Id, s.Title, s.StartTime, s.EndTime })
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -167,6 +226,20 @@ namespace SnapPlan.Controllers
                 .Where(e => e.Status == EventStatus.Pending)
                 .Include(e => e.Organizer)
                 .Include(e => e.Venue)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Description,
+                    e.StartDate,
+                    e.EndDate,
+                    e.Status,
+                    e.MaxTickets,
+                    e.AvailableTickets,
+                    SoldTickets = e.MaxTickets - e.AvailableTickets,
+                    Organizer = new { e.Organizer.Id, e.Organizer.Username, e.Organizer.Email },
+                    Venue = new { e.Venue.Id, e.Venue.Name, e.Venue.Location }
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -186,10 +259,57 @@ namespace SnapPlan.Controllers
                 .Where(e => e.OrganizerId == userId)
                 .Include(e => e.Venue)
                 .Include(e => e.Sessions)
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Description,
+                    e.StartDate,
+                    e.EndDate,
+                    e.Status,
+                    e.MaxTickets,
+                    e.AvailableTickets,
+                    SoldTickets = e.MaxTickets - e.AvailableTickets,
+                    Venue = new { e.Venue.Id, e.Venue.Name, e.Venue.Location },
+                    Sessions = e.Sessions.Select(s => new { s.Id, s.Title, s.StartTime, s.EndTime })
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
             return Ok(events);
+        }
+
+        // OrganizerOnly: get event statistics including ticket information
+        [HttpGet("{id:int}/statistics")]
+        [Authorize(Policy = "OrganizerOnly")]
+        public async Task<IActionResult> GetEventStatistics(int id)
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            if (!int.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+            var evt = await _db.Events
+                .Where(e => e.Id == id && e.OrganizerId == userId)
+                .FirstOrDefaultAsync();
+
+            if (evt == null) return NotFound();
+
+            var registrations = await _db.Registrations
+                .Where(r => r.EventId == id)
+                .CountAsync();
+
+            var statistics = new
+            {
+                EventId = evt.Id,
+                EventTitle = evt.Title,
+                MaxTickets = evt.MaxTickets,
+                AvailableTickets = evt.AvailableTickets,
+                SoldTickets = evt.MaxTickets - evt.AvailableTickets,
+                TotalRegistrations = registrations,
+                TicketUtilization = evt.MaxTickets > 0 ? (double)(evt.MaxTickets - evt.AvailableTickets) / evt.MaxTickets * 100 : 0
+            };
+
+            return Ok(statistics);
         }
     }
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SnapPlan")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+843f3246c487f4701d0be80c2fd20a2e75728be7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+420e265191f7b19e181107757655be72c7abe986")]
 [assembly: System.Reflection.AssemblyProductAttribute("SnapPlan")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SnapPlan")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
