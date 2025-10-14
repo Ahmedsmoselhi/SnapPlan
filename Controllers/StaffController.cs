@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SnapPlan.Data;
 using SnapPlan.Models;
 using SnapPlan.Models.DTOs;
+using SnapPlan.Utils;
 
 namespace SnapPlan.Controllers
 {
@@ -59,7 +60,7 @@ namespace SnapPlan.Controllers
             {
                 Username = req.Username,
                 Email = req.Email,
-                PasswordHash = req.Password,
+                PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password),
                 Role = req.Role
             };
             
@@ -79,11 +80,35 @@ namespace SnapPlan.Controllers
 
             if (!string.IsNullOrWhiteSpace(req.Username)) staff.Username = req.Username;
             if (!string.IsNullOrWhiteSpace(req.Email)) staff.Email = req.Email;
-            if (!string.IsNullOrWhiteSpace(req.Password)) staff.PasswordHash = req.Password;
+            if (!string.IsNullOrWhiteSpace(req.Password)) staff.PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password);
             if (req.Role.HasValue) staff.Role = req.Role.Value;
 
             await _db.SaveChangesAsync();
             return Ok(MapToResponseDto(staff));
+        }
+
+        // AdminOnly: ban staff
+        [HttpPost("{id:int}/ban")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> BanStaff(int id)
+        {
+            var staff = await _db.Staffs.FindAsync(id);
+            if (staff == null) return NotFound();
+            staff.IsBanned = true;
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Staff banned." });
+        }
+
+        // AdminOnly: unban staff
+        [HttpPost("{id:int}/unban")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> UnbanStaff(int id)
+        {
+            var staff = await _db.Staffs.FindAsync(id);
+            if (staff == null) return NotFound();
+            staff.IsBanned = false;
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Staff unbanned." });
         }
 
         // AdminOnly: delete staff member
@@ -130,7 +155,7 @@ namespace SnapPlan.Controllers
 
             if (!string.IsNullOrWhiteSpace(req.Username)) staff.Username = req.Username;
             if (!string.IsNullOrWhiteSpace(req.Email)) staff.Email = req.Email;
-            if (!string.IsNullOrWhiteSpace(req.Password)) staff.PasswordHash = req.Password;
+            if (!string.IsNullOrWhiteSpace(req.Password)) staff.PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password);
             // Staff cannot change their own role
 
             await _db.SaveChangesAsync();

@@ -83,6 +83,9 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Block banned users after authentication
+app.UseMiddleware<SnapPlan.Middleware.BanMiddleware>();
+
 app.MapControllers();
 
 app.Run();

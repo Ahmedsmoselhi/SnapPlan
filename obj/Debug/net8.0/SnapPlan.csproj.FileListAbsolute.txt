@@ -339,3 +339,8 @@ C:\Users\ahmed\OneDrive\Desktop\SnapPlan\obj\Debug\net8.0\SnapPlan.genruntimecon
 C:\Users\ahmed\OneDrive\Desktop\SnapPlan\obj\Debug\net8.0\ref\SnapPlan.dll
 C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\appsettings.json
 C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\frontend\package-lock.json
+C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\frontend\package.json
+C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\frontend\tsconfig.app.json
+C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\frontend\tsconfig.json
+C:\Users\ahmed\OneDrive\Desktop\SnapPlan\bin\Debug\net8.0\frontend\tsconfig.node.json

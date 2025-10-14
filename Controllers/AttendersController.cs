@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SnapPlan.Data;
 using SnapPlan.Models;
 using SnapPlan.Models.DTOs;
+using SnapPlan.Utils;
 
 namespace SnapPlan.Controllers
 {
@@ -53,7 +54,7 @@ namespace SnapPlan.Controllers
             {
                 Username = req.Username,
                 Email = req.Email,
-                PasswordHash = req.Password,
+                PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password),
                 PhoneNumber = req.PhoneNumber
             };
             _db.Attenders.Add(attender);
@@ -71,11 +72,35 @@ namespace SnapPlan.Controllers
 
             if (!string.IsNullOrWhiteSpace(req.Username)) attender.Username = req.Username;
             if (!string.IsNullOrWhiteSpace(req.Email)) attender.Email = req.Email;
-            if (!string.IsNullOrWhiteSpace(req.Password)) attender.PasswordHash = req.Password;
+            if (!string.IsNullOrWhiteSpace(req.Password)) attender.PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password);
             if (!string.IsNullOrWhiteSpace(req.PhoneNumber)) attender.PhoneNumber = req.PhoneNumber;
 
             await _db.SaveChangesAsync();
             return Ok(MapToResponseDto(attender));
+        }
+
+        // AdminOnly: ban attender
+        [HttpPost("{id:int}/ban")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> BanAttender(int id)
+        {
+            var attender = await _db.Attenders.FindAsync(id);
+            if (attender == null) return NotFound();
+            attender.IsBanned = true;
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Attender banned." });
+        }
+
+        // AdminOnly: unban attender
+        [HttpPost("{id:int}/unban")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> UnbanAttender(int id)
+        {
+            var attender = await _db.Attenders.FindAsync(id);
+            if (attender == null) return NotFound();
+            attender.IsBanned = false;
+            await _db.SaveChangesAsync();
+            return Ok(new { message = "Attender unbanned." });
         }
 
 
@@ -121,7 +146,7 @@ namespace SnapPlan.Controllers
 
             if (!string.IsNullOrWhiteSpace(req.Username)) attender.Username = req.Username;
             if (!string.IsNullOrWhiteSpace(req.Email)) attender.Email = req.Email;
-            if (!string.IsNullOrWhiteSpace(req.Password)) attender.PasswordHash = req.Password;
+            if (!string.IsNullOrWhiteSpace(req.Password)) attender.PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password);
             if (!string.IsNullOrWhiteSpace(req.PhoneNumber)) attender.PhoneNumber = req.PhoneNumber;
 
             await _db.SaveChangesAsync();

@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using SnapPlan.Data;
 using SnapPlan.Models;
+using SnapPlan.Utils;
  
 
 namespace SnapPlan.Controllers
@@ -44,7 +45,7 @@ namespace SnapPlan.Controllers
             {
                 Username = req.Username,
                 Email = req.Email,
-                PasswordHash = req.Password,
+                PasswordHash = SimplePasswordHasher.ComputeSha256(req.Password),
                 PhoneNumber = req.PhoneNumber
             };
             
@@ -62,8 +63,15 @@ namespace SnapPlan.Controllers
             var staff = _db.Staffs.FirstOrDefault(s => 
                 s.Username == req.UsernameOrEmail || s.Email == req.UsernameOrEmail);
             
-            if (staff == null || staff.PasswordHash != req.Password)
+            if (staff == null)
                 return Unauthorized("Invalid credentials.");
+
+            var providedHash = SimplePasswordHasher.ComputeSha256(req.Password);
+            if (!string.Equals(staff.PasswordHash, providedHash, StringComparison.Ordinal))
+                return Unauthorized("Invalid credentials.");
+
+            if (staff.IsBanned)
+                return StatusCode(StatusCodes.Status403Forbidden, "Account is banned.");
 
             var token = GenerateJwt(staff.Id, staff.Username, staff.Role.ToString());
             
@@ -86,8 +94,15 @@ namespace SnapPlan.Controllers
             var attender = _db.Attenders.FirstOrDefault(a => 
                 a.Username == req.UsernameOrEmail || a.Email == req.UsernameOrEmail);
             
-            if (attender == null || attender.PasswordHash != req.Password)
+            if (attender == null)
                 return Unauthorized("Invalid credentials.");
+
+            var providedHash2 = SimplePasswordHasher.ComputeSha256(req.Password);
+            if (!string.Equals(attender.PasswordHash, providedHash2, StringComparison.Ordinal))
+                return Unauthorized("Invalid credentials.");
+
+            if (attender.IsBanned)
+                return StatusCode(StatusCodes.Status403Forbidden, "Account is banned.");
 
             var token = GenerateJwt(attender.Id, attender.Username, "Attender");
             
