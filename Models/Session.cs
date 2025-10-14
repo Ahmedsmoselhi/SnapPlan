@@ -1,4 +1,6 @@
-﻿namespace SnapPlan.Models
+﻿using System.Text.Json.Serialization;
+
+namespace SnapPlan.Models
 {
     public class Session
     {
@@ -8,12 +10,15 @@
         public DateTime EndTime { get; set; }
 
         public int EventId { get; set; }
+        [JsonIgnore]
         public Event Event { get; set; }
 
         public int RoomId { get; set; }
+        [JsonIgnore]
         public Room Room { get; set; }
 
         public int SpeakerId { get; set; }
+        [JsonIgnore]
         public Speaker Speaker { get; set; }
     }
 

@@ -2,6 +2,12 @@
   "ConnectionStrings": {
     "DefaultConnection": "Server=Moselhi\\SQLEXPRESS;Database=SnapPlan;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
   },
+  "Jwt": {
+    "Key": "bahawel-a3ml-ay-key-ykoon-3al-a2l-32-characters",
+    "Issuer": "SnapPlan",
+    "Audience": "SnapPlanClients",
+    "ExpiresMinutes": "60"
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
